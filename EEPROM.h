@@ -14,6 +14,7 @@
 #ifndef EEPROM_H_
 #define EEPROM_H_
 
+#include<avr/interrupt.h>
 
 extern uint16_t startAddress = 0x0005;	
 extern uint16_t endAddressLocation = 0x01;
@@ -35,10 +36,15 @@ void EEPROM_erase_Address(uint16_t address)
 	
 }
 
-void EEPROM_write_To_Address(uint16_t ucAddress, unsigned char ucData)
+char EEPROM_write_To_Address(uint16_t ucAddress, unsigned char ucData, char statusRegisterValue) //returns the old status register value, useful when handling interrupts
 {
 	//This method first erases the location then writes. If you only need to erase/write then use the other methods. 
 	//This method is preferable over the other write method but this method will require more time than other methods to complete the action.
+	
+	char cSREG;
+	cSREG =  statusRegisterValue/* store SREG value */
+	/* disable interrupts during timed sequence */
+	cli();
 	
 	/* Set Programming mode */
 	//Erase and Write in one Operation
@@ -59,6 +65,8 @@ void EEPROM_write_To_Address(uint16_t ucAddress, unsigned char ucData)
 	
 	/* Wait for completion of write */
 	while(EECR & (1<<EEPE));
+	
+	return statusRegisterValue;
 }
 
 unsigned char EEPROM_read_from_Address(uint16_t ucAddress) 
